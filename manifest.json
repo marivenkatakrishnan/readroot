@@ -1,0 +1,17 @@
+{
+  "name": "ReadRoot",
+  "short_name": "ReadRoot",
+  "description": "A local-first book finder and reading habit tracker.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#fbf8f1",
+  "theme_color": "#f7f2e8",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">ReadRoot icon</title>
+  <desc id="desc">A green ReadRoot monogram over an open book.</desc>
+  <rect width="128" height="128" rx="24" fill="#fbf8f1"/>
+  <path d="M26 31h31c10 0 18 8 18 18v48c0 3-3 5-6 3-5-4-11-6-18-6H26V31Z" fill="#fffdf8" stroke="#145543" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M102 31H71c-10 0-18 8-18 18v48c0 3 3 5 6 3 5-4 11-6 18-6h25V31Z" fill="#fffaf0" stroke="#145543" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M64 36v61" stroke="#2f7d64" stroke-width="6" stroke-linecap="round"/>
+  <path d="M39 50h15M39 65h16M88 50H74M89 65H74" stroke="#d38b26" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="64" cy="64" r="24" fill="#2f7d64"/>
+  <path d="M52 79V49h15c7 0 12 4 12 10 0 5-3 8-7 10l9 10H70l-8-9h-2v9H52Zm8-16h6c3 0 5-2 5-4 0-3-2-4-5-4h-6v8Z" fill="#fffdf8"/>
+</svg>

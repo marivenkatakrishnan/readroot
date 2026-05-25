@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f7f2e8">
+    <meta name="description" content="ReadRoot helps you discover books, build shelves, log pages, and grow a reading habit with local-first tracking.">
+    <meta name="application-name" content="ReadRoot">
+    <meta name="apple-mobile-web-app-title" content="ReadRoot">
+    <meta name="robots" content="index, follow">
+    <meta property="og:site_name" content="ReadRoot">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="ReadRoot | Book Finder and Reading Habit Tracker">
+    <meta property="og:description" content="Find books, track pages, build streaks, and keep your reading habit growing.">
+    <meta property="og:image" content="social-preview.svg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="ReadRoot | Book Finder and Reading Habit Tracker">
+    <meta name="twitter:description" content="Find books, track pages, build streaks, and keep your reading habit growing.">
+    <meta name="twitter:image" content="social-preview.svg">
+    <title>ReadRoot | Book Finder and Reading Habit Tracker</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="ReadRoot navigation">
+        <div class="brand-block">
+          <div class="brand-mark" aria-hidden="true">R</div>
+          <div>
+            <p class="eyebrow">ReadRoot</p>
+            <h1>Grow a reading habit.</h1>
+          </div>
+        </div>
+
+        <nav class="nav-stack" aria-label="Primary">
+          <button class="nav-button active" data-view="discover" type="button">
+            <span>Search</span>
+          </button>
+          <button class="nav-button" data-view="shelves" type="button">
+            <span>Shelves</span>
+          </button>
+          <button class="nav-button" data-view="habit" type="button">
+            <span>Habit</span>
+          </button>
+        </nav>
+
+        <div class="goal-card">
+          <div class="goal-topline">
+            <span>Year Goal</span>
+            <strong id="goal-count">0 / 12</strong>
+          </div>
+          <div class="meter" aria-hidden="true">
+            <span id="goal-meter"></span>
+          </div>
+          <label for="goal-input" class="field-label">Books this year</label>
+          <div class="compact-input-row">
+            <input id="goal-input" type="number" min="1" max="200" inputmode="numeric">
+            <button class="icon-button" id="save-goal" type="button" title="Save goal" aria-label="Save goal">
+              <span aria-hidden="true">Save</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="cloud-card">
+          <div class="goal-topline">
+            <span>Storage</span>
+            <strong id="cloud-badge">On device</strong>
+          </div>
+          <p id="cloud-status">Your reading data stays in this browser on this device.</p>
+
+          <form class="auth-form" id="auth-form" hidden>
+            <label for="auth-email" class="field-label">Email</label>
+            <input id="auth-email" type="email" autocomplete="email" placeholder="you@example.com">
+            <button type="submit">Send magic link</button>
+          </form>
+
+          <button class="secondary-button" id="google-login" type="button" hidden>Continue with Google</button>
+
+          <div class="profile-panel" id="profile-panel" hidden>
+            <label for="profile-name" class="field-label">Display name</label>
+            <input id="profile-name" type="text" maxlength="60" placeholder="Reader name">
+            <label for="profile-username" class="field-label">Username</label>
+            <input id="profile-username" type="text" maxlength="40" placeholder="reader123">
+            <div class="compact-input-row">
+              <button id="save-profile" type="button">Save profile</button>
+              <button id="sign-out" type="button">Sign out</button>
+            </div>
+            <button class="secondary-button" id="sync-cloud" type="button">Save progress online</button>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main-panel">
+        <section class="view active" id="discover-view" aria-labelledby="discover-title">
+          <header class="page-header">
+            <div>
+              <p class="eyebrow">Find your next read</p>
+              <h2 id="discover-title">Book Finder</h2>
+            </div>
+            <div class="stats-strip" aria-label="Reading stats">
+              <div>
+                <span id="stat-books">0</span>
+                <small>books</small>
+              </div>
+              <div>
+                <span id="stat-pages">0</span>
+                <small>pages</small>
+              </div>
+              <div>
+                <span id="stat-streak">0</span>
+                <small>streak</small>
+              </div>
+            </div>
+          </header>
+
+          <form class="search-panel" id="search-form">
+            <label for="search-input">Search by title, author, or ISBN</label>
+            <div class="search-row">
+              <input id="search-input" type="search" placeholder="Atomic Habits, Ponniyin Selvan, Kalam..." autocomplete="off">
+              <button type="submit">Search</button>
+            </div>
+          </form>
+
+          <section class="category-panel" aria-labelledby="category-title">
+            <div class="section-title-row compact-title-row">
+              <h3 id="category-title">Browse Categories</h3>
+              <span>Curated picks</span>
+            </div>
+            <div class="quick-row" aria-label="Book categories">
+              <button type="button" data-subject="tamil_literature" data-label="Tamil literature">Tamil literature</button>
+              <button type="button" data-subject="indian_history" data-label="Indian history">Indian history</button>
+              <button type="button" data-subject="self_help" data-label="Self improvement">Self improvement</button>
+              <button type="button" data-subject="technology" data-label="Technology">Technology</button>
+              <button type="button" data-subject="computer_science" data-label="Computer science">Computer science</button>
+              <button type="button" data-subject="biography" data-label="Biography">Biography</button>
+              <button type="button" data-subject="fiction" data-label="Fiction">Fiction</button>
+              <button type="button" data-subject="classic_literature" data-label="Famous classics">Famous classics</button>
+              <button type="button" data-subject="science" data-label="Science">Science</button>
+              <button type="button" data-subject="psychology" data-label="Psychology">Psychology</button>
+              <button type="button" data-subject="philosophy" data-label="Philosophy">Philosophy</button>
+              <button type="button" data-subject="entrepreneurship" data-label="Entrepreneurship">Entrepreneurship</button>
+              <button type="button" data-subject="fantasy" data-label="Fantasy">Fantasy</button>
+              <button type="button" data-subject="mystery_and_detective_stories" data-label="Mystery">Mystery</button>
+              <button type="button" data-subject="historical_fiction" data-label="Historical fiction">Historical fiction</button>
+              <button type="button" data-subject="poetry" data-label="Poetry">Poetry</button>
+            </div>
+          </section>
+
+          <section class="category-panel" aria-labelledby="mood-title">
+            <div class="section-title-row compact-title-row">
+              <h3 id="mood-title">Mood Picks</h3>
+              <span>Quick discovery</span>
+            </div>
+            <div class="quick-row" aria-label="Mood based book searches">
+              <button type="button" data-query="short stories" data-label="Short read">Short read</button>
+              <button type="button" data-query="motivational self help" data-label="Motivational">Motivational</button>
+              <button type="button" data-query="philosophy essays" data-label="Deep thinking">Deep thinking</button>
+              <button type="button" data-query="adventure fiction" data-label="Fiction escape">Fiction escape</button>
+              <button type="button" data-query="career development" data-label="Career growth">Career growth</button>
+              <button type="button" data-query="calm mindfulness" data-label="Calm mind">Calm mind</button>
+            </div>
+          </section>
+
+          <div class="section-title-row">
+            <h3>Results</h3>
+            <span id="result-status">Start with a search.</span>
+          </div>
+          <div class="book-grid" id="results-grid" aria-live="polite"></div>
+        </section>
+
+        <section class="view" id="shelves-view" aria-labelledby="shelves-title">
+          <header class="page-header">
+            <div>
+              <p class="eyebrow">Your library</p>
+              <h2 id="shelves-title">Reading Shelves</h2>
+            </div>
+          </header>
+
+          <div class="tabs" role="tablist" aria-label="Shelves">
+            <button class="tab active" role="tab" aria-selected="true" data-shelf="want">Want</button>
+            <button class="tab" role="tab" aria-selected="false" data-shelf="reading">Reading</button>
+            <button class="tab" role="tab" aria-selected="false" data-shelf="finished">Finished</button>
+          </div>
+
+          <div class="book-grid shelf-grid" id="shelf-grid"></div>
+        </section>
+
+        <section class="view" id="habit-view" aria-labelledby="habit-title">
+          <header class="page-header">
+            <div>
+              <p class="eyebrow">Daily rhythm</p>
+              <h2 id="habit-title">Habit Garden</h2>
+            </div>
+            <button type="button" id="mark-read">I read today</button>
+          </header>
+
+          <div class="habit-tabs tabs compact-tabs" role="tablist" aria-label="Habit sections">
+            <button class="tab active" role="tab" aria-selected="true" data-habit-panel="overview" type="button">Overview</button>
+            <button class="tab" role="tab" aria-selected="false" data-habit-panel="log" type="button">Log</button>
+            <button class="tab" role="tab" aria-selected="false" data-habit-panel="league" type="button">League</button>
+            <button class="tab" role="tab" aria-selected="false" data-habit-panel="insights" type="button">Insights</button>
+          </div>
+
+          <div class="habit-layout">
+            <div class="habit-panel active" data-habit-section="overview">
+              <section class="panel-block wide-panel today-panel" aria-labelledby="today-title">
+                <div class="section-title-row">
+                  <h3 id="today-title">Today Dashboard</h3>
+                  <span id="today-caption">Small steps count.</span>
+                </div>
+                <div class="dashboard-grid" id="today-dashboard"></div>
+                <div class="weekly-goal">
+                  <div>
+                    <label for="weekly-goal-input">Weekly page goal</label>
+                    <div class="compact-input-row">
+                      <input id="weekly-goal-input" type="number" min="1" max="5000" inputmode="numeric">
+                      <button class="icon-button" id="save-weekly-goal" type="button">Save</button>
+                    </div>
+                  </div>
+                  <div class="weekly-progress">
+                    <div class="goal-topline">
+                      <span>This week</span>
+                      <strong id="weekly-goal-count">0 / 100</strong>
+                    </div>
+                    <div class="meter" aria-hidden="true">
+                      <span id="weekly-goal-meter"></span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="panel-block wide-panel" aria-labelledby="calendar-title">
+                <div class="section-title-row">
+                  <h3 id="calendar-title">Reading Calendar</h3>
+                  <span id="calendar-caption">Last 35 days</span>
+                </div>
+                <div class="calendar-grid" id="calendar-grid" aria-label="Reading calendar"></div>
+              </section>
+            </div>
+
+            <div class="habit-panel" data-habit-section="log">
+              <section class="panel-block" aria-labelledby="timer-title">
+                <div class="section-title-row">
+                  <h3 id="timer-title">Focus Timer</h3>
+                  <span id="timer-state">Ready</span>
+                </div>
+                <div class="timer-face" id="timer-display">20:00</div>
+                <div class="timer-controls" aria-label="Timer duration">
+                  <button type="button" data-minutes="10">10m</button>
+                  <button type="button" data-minutes="20" class="active">20m</button>
+                  <button type="button" data-minutes="30">30m</button>
+                </div>
+                <div class="timer-actions">
+                  <button type="button" id="start-timer">Start</button>
+                  <button type="button" id="pause-timer">Pause</button>
+                  <button type="button" id="reset-timer">Reset</button>
+                </div>
+              </section>
+
+              <section class="panel-block" aria-labelledby="log-title">
+                <div class="section-title-row">
+                  <h3 id="log-title">Reading Log</h3>
+                  <span id="log-status">Today</span>
+                </div>
+                <form class="log-form" id="log-form">
+                  <label for="log-book">Book</label>
+                  <select id="log-book"></select>
+                  <div class="log-grid">
+                    <div>
+                      <label for="log-pages">Pages read</label>
+                      <input id="log-pages" type="number" min="1" max="2000" inputmode="numeric" placeholder="12">
+                    </div>
+                    <div>
+                      <label for="log-minutes">Minutes</label>
+                      <input id="log-minutes" type="number" min="0" max="1440" inputmode="numeric" placeholder="20">
+                    </div>
+                  </div>
+                  <label for="log-datetime">Read date and time</label>
+                  <input id="log-datetime" type="datetime-local">
+                  <button type="submit">Log session</button>
+                </form>
+              </section>
+
+              <section class="panel-block wide-panel" aria-labelledby="history-title">
+                <div class="section-title-row">
+                  <h3 id="history-title">Log History</h3>
+                  <span id="history-count">0 sessions</span>
+                </div>
+                <div class="history-summary" id="history-summary" aria-label="Reading history summary"></div>
+                <div class="history-list" id="history-list"></div>
+              </section>
+            </div>
+
+            <div class="habit-panel" data-habit-section="league">
+              <section class="panel-block wide-panel" aria-labelledby="league-title">
+                <div class="section-title-row">
+                  <h3 id="league-title">Reading League</h3>
+                  <span id="leaderboard-status">Group mode</span>
+                </div>
+                <div class="group-tools" id="group-tools" hidden>
+                  <div>
+                    <label for="group-select">Group</label>
+                    <select id="group-select"></select>
+                  </div>
+                  <form id="create-group-form">
+                    <label for="create-group-name">Create group</label>
+                    <div class="compact-input-row">
+                      <input id="create-group-name" type="text" maxlength="60" placeholder="Weekend Readers">
+                      <button type="submit">Create</button>
+                    </div>
+                  </form>
+                  <form id="join-group-form">
+                    <label for="join-group-code">Join by code</label>
+                    <div class="compact-input-row">
+                      <input id="join-group-code" type="text" maxlength="12" placeholder="A1B2C3D4">
+                      <button type="submit">Join</button>
+                    </div>
+                  </form>
+                </div>
+                <div class="group-share" id="group-share" hidden>
+                  <span>Invite code</span>
+                  <strong id="group-code">-</strong>
+                  <small id="group-members">0 members</small>
+                </div>
+                <div class="tabs compact-tabs" id="leaderboard-tabs" role="tablist" aria-label="Leaderboard period" hidden>
+                  <button class="tab active" role="tab" aria-selected="true" data-board="week" type="button">Week</button>
+                  <button class="tab" role="tab" aria-selected="false" data-board="month" type="button">Month</button>
+                  <button class="tab" role="tab" aria-selected="false" data-board="all" type="button">All time</button>
+                </div>
+                <div class="leaderboard-list" id="leaderboard-list"></div>
+              </section>
+            </div>
+
+            <div class="habit-panel" data-habit-section="insights">
+              <section class="panel-block wide-panel" aria-labelledby="pace-title">
+                <div class="section-title-row">
+                  <h3 id="pace-title">Pace Stats</h3>
+                  <span id="pace-caption">From your logs</span>
+                </div>
+                <div class="insight-grid" id="pace-stats"></div>
+              </section>
+
+              <section class="panel-block wide-panel" aria-labelledby="prediction-title">
+                <div class="section-title-row">
+                  <h3 id="prediction-title">Finish Predictions</h3>
+                  <span id="prediction-count">Reading shelf</span>
+                </div>
+                <div class="prediction-list" id="prediction-list"></div>
+              </section>
+
+              <section class="panel-block wide-panel" aria-labelledby="challenge-title">
+                <div class="section-title-row">
+                  <h3 id="challenge-title">Reading Challenges</h3>
+                  <span id="challenge-count">Keep it friendly</span>
+                </div>
+                <div class="challenge-list" id="challenge-list"></div>
+              </section>
+
+              <section class="panel-block wide-panel" aria-labelledby="recent-title">
+                <div class="section-title-row">
+                  <h3 id="recent-title">Recent Notes</h3>
+                  <span id="notes-count">0 notes</span>
+                </div>
+                <div class="notes-list" id="notes-list"></div>
+              </section>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="book-dialog">
+      <form method="dialog" class="dialog-card">
+        <button class="close-button" value="close" aria-label="Close" type="submit">x</button>
+        <div class="dialog-content">
+          <div class="cover-frame large" id="dialog-cover"></div>
+          <div class="dialog-main">
+            <p class="eyebrow" id="dialog-author">Author</p>
+            <h3 id="dialog-title">Book title</h3>
+            <p id="dialog-meta" class="muted-line"></p>
+
+            <div class="dialog-actions">
+              <button type="button" data-add-shelf="want">Want</button>
+              <button type="button" data-add-shelf="reading">Reading</button>
+              <button type="button" data-add-shelf="finished">Finished</button>
+            </div>
+
+            <div class="progress-editor">
+              <label for="current-page">Current page</label>
+              <input id="current-page" type="number" min="0" inputmode="numeric">
+              <label for="total-pages">Total pages</label>
+              <input id="total-pages" type="number" min="1" inputmode="numeric">
+              <button type="button" id="save-progress">Save progress</button>
+            </div>
+
+            <div class="note-editor">
+              <label for="book-note-type">Note type</label>
+              <select id="book-note-type">
+                <option value="Idea">Idea</option>
+                <option value="Quote">Quote</option>
+                <option value="Summary">Summary</option>
+                <option value="Action">Action</option>
+              </select>
+              <label for="book-note">Journal note</label>
+              <textarea id="book-note" rows="5" placeholder="One idea worth remembering..."></textarea>
+              <button type="button" id="save-note">Add note</button>
+            </div>
+
+            <div class="dialog-notes">
+              <div class="section-title-row compact-title-row">
+                <h3>Book Notes</h3>
+                <span id="book-notes-count">0 notes</span>
+              </div>
+              <div class="notes-list" id="book-notes-list"></div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </dialog>
+
+    <template id="book-card-template">
+      <article class="book-card">
+        <button class="card-open" type="button" aria-label="Open book details"></button>
+        <div class="cover-frame"></div>
+        <div class="book-info">
+          <p class="book-author"></p>
+          <h3 class="book-title"></h3>
+          <p class="book-meta"></p>
+          <div class="progress-line">
+            <span></span>
+          </div>
+          <div class="book-actions">
+            <button type="button" data-shelf-action="want">Want</button>
+            <button type="button" data-shelf-action="reading">Reading</button>
+            <button type="button" data-shelf-action="finished">Done</button>
+          </div>
+        </div>
+      </article>
+    </template>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

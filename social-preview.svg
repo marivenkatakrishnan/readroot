@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">ReadRoot social preview</title>
+  <desc id="desc">ReadRoot book finder and reading habit tracker preview image.</desc>
+  <rect width="1200" height="630" fill="#fbf8f1"/>
+  <path d="M0 0h1200v630H0z" fill="#fbf8f1"/>
+  <path d="M0 0h1200v630H0z" fill="none"/>
+  <path d="M860 0h340v630H760c75-70 109-163 100-279-8-112-3-229 0-351Z" fill="#e8f2ec"/>
+  <path d="M0 384c132-74 276-84 432-30 160 56 296 46 408-30 93-63 210-76 360-39v345H0V384Z" fill="#f0dfc5"/>
+  <g transform="translate(86 112)">
+    <rect x="0" y="0" width="142" height="142" rx="26" fill="#145543"/>
+    <path d="M35 41h30c14 0 25 11 25 25v49c0 4-4 7-8 4-6-4-13-7-22-7H35V41Z" fill="#fffdf8"/>
+    <path d="M107 41H77c-14 0-25 11-25 25v49c0 4 4 7 8 4 6-4 13-7 22-7h25V41Z" fill="#fffaf0"/>
+    <path d="M71 48v68" stroke="#2f7d64" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="71" cy="76" r="24" fill="#2f7d64"/>
+    <path d="M59 90V61h14c7 0 12 4 12 10 0 5-3 8-7 9l9 10H76l-8-8h-2v8H59Zm7-15h7c3 0 5-1 5-4 0-2-2-4-5-4h-7v8Z" fill="#fffdf8"/>
+  </g>
+  <text x="86" y="327" fill="#251f19" font-family="Inter, Arial, sans-serif" font-size="92" font-weight="850">ReadRoot</text>
+  <text x="90" y="398" fill="#145543" font-family="Inter, Arial, sans-serif" font-size="38" font-weight="750">Book finder and reading habit tracker</text>
+  <text x="90" y="470" fill="#74695e" font-family="Inter, Arial, sans-serif" font-size="30">Discover books, build shelves, log pages, and grow a daily reading rhythm.</text>
+  <g transform="translate(90 518)">
+    <rect width="182" height="48" rx="8" fill="#2f7d64"/>
+    <text x="24" y="32" fill="#fffdf8" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="800">Local-first</text>
+    <rect x="202" width="205" height="48" rx="8" fill="#fffaf0" stroke="#ded4c5"/>
+    <text x="226" y="32" fill="#145543" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="800">Habit Garden</text>
+    <rect x="428" width="190" height="48" rx="8" fill="#fffaf0" stroke="#ded4c5"/>
+    <text x="452" y="32" fill="#145543" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="800">Page logs</text>
+  </g>
+</svg>
