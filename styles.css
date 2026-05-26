@@ -210,6 +210,31 @@ h3 {
   background: rgba(255, 253, 248, 0.78);
 }
 
+.creator-credit {
+  margin-top: 16px;
+  padding: 13px 2px 0;
+  border-top: 1px solid rgba(117, 95, 73, 0.18);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.creator-credit span {
+  display: block;
+  margin-bottom: 2px;
+  font-weight: 750;
+}
+
+.creator-credit a {
+  color: var(--accent-strong);
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.creator-credit a:hover {
+  text-decoration: underline;
+}
+
 .goal-topline,
 .section-title-row,
 .page-header,
