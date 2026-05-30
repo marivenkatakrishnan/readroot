@@ -26,6 +26,12 @@
   var timerId = null;
   var supabaseConfig = window.READROOT_SUPABASE || {};
   var activeHabitPanel = "overview";
+  var notePlaceholders = {
+    Idea: "One idea worth remembering...",
+    Quote: "Paste a short quote and why it stood out...",
+    Summary: "Write a 2-3 line summary in your own words...",
+    Action: "What will you try after reading this?"
+  };
   var cloud = {
     client: null,
     enabled: false,
@@ -256,6 +262,8 @@
       renderAll();
       openBook(book);
     });
+
+    els.bookNoteType.addEventListener("change", updateNotePlaceholder);
 
     els.saveNote.addEventListener("click", function () {
       if (!currentBook) {
@@ -1132,6 +1140,7 @@
     els.totalPages.value = currentBook.totalPages || "";
     els.bookNoteType.value = "Idea";
     els.bookNote.value = "";
+    updateNotePlaceholder();
     renderDialogShelfButtons(currentBook.key);
     renderBookDialogNotes(currentBook);
 
@@ -1149,6 +1158,11 @@
       button.classList.toggle("selected", selected);
       button.setAttribute("aria-pressed", String(selected));
     });
+  }
+
+  function updateNotePlaceholder() {
+    var type = els.bookNoteType.value || "Idea";
+    els.bookNote.placeholder = notePlaceholders[type] || notePlaceholders.Idea;
   }
 
   function renderHabit() {
