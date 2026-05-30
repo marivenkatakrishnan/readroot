@@ -913,6 +913,7 @@
       year: doc.first_publish_year || "",
       coverId: doc.cover_i || "",
       pages: doc.number_of_pages_median || "",
+      catalogPages: doc.number_of_pages_median || "",
       isbn: isbn,
       subjects: Array.isArray(doc.subject) ? doc.subject.slice(0, 4) : []
     };
@@ -928,6 +929,7 @@
       year: work.first_publish_year || "",
       coverId: work.cover_id || "",
       pages: "",
+      catalogPages: "",
       isbn: "",
       subjects: Array.isArray(work.subject) ? work.subject.slice(0, 4) : []
     };
@@ -1033,8 +1035,10 @@
     if (book.year) {
       bits.push(book.year);
     }
-    if (book.pages || book.totalPages) {
-      bits.push((book.totalPages || book.pages) + " pages");
+    if (book.catalogPages) {
+      bits.push(book.catalogPages + " pages");
+    } else if (book.totalPages) {
+      bits.push(book.totalPages + " pages");
     }
     return bits.join(" / ") || "Book";
   }
@@ -1066,10 +1070,11 @@
       author: rawBook.author || existing.author || "Unknown author",
       year: rawBook.year || existing.year || "",
       coverId: rawBook.coverId || existing.coverId || "",
-      pages: rawBook.pages || existing.pages || "",
+      pages: existing.pages || "",
+      catalogPages: Number(existing.catalogPages) || Number(rawBook.catalogPages) || Number(rawBook.pages) || Number(existing.pages) || 0,
       subjects: rawBook.subjects || existing.subjects || [],
       currentPage: Number(existing.currentPage) || 0,
-      totalPages: Number(existing.totalPages) || Number(rawBook.pages) || Number(existing.pages) || 0,
+      totalPages: Number(existing.totalPages) || 0,
       note: typeof existing.note === "string" ? existing.note : "",
       noteUpdatedAt: existing.noteUpdatedAt || "",
       notes: Array.isArray(existing.notes) ? existing.notes : [],
@@ -1112,7 +1117,7 @@
     els.dialogTitle.textContent = currentBook.title;
     els.dialogMeta.textContent = buildMeta(currentBook);
     els.currentPage.value = currentBook.currentPage || 0;
-    els.totalPages.value = currentBook.totalPages || currentBook.pages || "";
+    els.totalPages.value = currentBook.totalPages || "";
     els.bookNoteType.value = "Idea";
     els.bookNote.value = "";
     renderBookDialogNotes(currentBook);
@@ -1177,7 +1182,7 @@
     }
     var book = state.books[key];
     var current = Number(book.currentPage) || 0;
-    var total = Number(book.totalPages) || Number(book.pages) || 0;
+    var total = Number(book.totalPages) || 0;
     book.currentPage = total ? Math.min(total, current + pages) : current + pages;
     var log = {
       id: "log-" + Date.now(),
@@ -1347,7 +1352,7 @@
     }
 
     books.forEach(function (book) {
-      var total = Number(book.totalPages) || Number(book.pages) || 0;
+      var total = Number(book.totalPages) || 0;
       var current = Number(book.currentPage) || 0;
       var remaining = Math.max(0, total - current);
       var item = document.createElement("article");
@@ -1558,7 +1563,7 @@
   }
 
   function getProgressPercent(book) {
-    var total = Number(book.totalPages) || Number(book.pages) || 0;
+    var total = Number(book.totalPages) || 0;
     var current = Number(book.currentPage) || 0;
     if (!total || !current) {
       return 0;
@@ -1590,7 +1595,7 @@
       };
     }
 
-    var total = Number(book.totalPages) || Number(book.pages) || 0;
+    var total = Number(book.totalPages) || 0;
     var current = Number(book.currentPage) || 0;
     var remaining = total ? Math.max(0, total - current) : 10;
     if (total && !remaining) {
