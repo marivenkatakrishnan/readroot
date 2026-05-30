@@ -1033,10 +1033,10 @@
   function buildMeta(book) {
     var bits = [];
     if (book.year) {
-      bits.push(book.year);
+      bits.push("Published " + book.year);
     }
     if (book.catalogPages) {
-      bits.push(book.catalogPages + " pages");
+      bits.push("About " + book.catalogPages + " pages");
     } else if (book.totalPages) {
       bits.push(book.totalPages + " pages");
     }
