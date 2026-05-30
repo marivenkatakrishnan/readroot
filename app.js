@@ -234,6 +234,8 @@
       button.addEventListener("click", function () {
         if (currentBook) {
           addToShelf(currentBook, button.dataset.addShelf);
+          currentBook = state.books[currentBook.key] || currentBook;
+          renderDialogShelfButtons(currentBook.key);
           renderAll();
         }
       });
@@ -982,6 +984,7 @@
 
   function createBookCard(rawBook) {
     var savedBook = state.books[rawBook.key] || rawBook;
+    var activeShelf = getBookShelf(savedBook.key);
     var card = els.cardTemplate.content.firstElementChild.cloneNode(true);
     var cover = card.querySelector(".cover-frame");
     var title = card.querySelector(".book-title");
@@ -1001,6 +1004,9 @@
     });
 
     card.querySelectorAll("[data-shelf-action]").forEach(function (button) {
+      var selected = button.dataset.shelfAction === activeShelf;
+      button.classList.toggle("selected", selected);
+      button.setAttribute("aria-pressed", String(selected));
       button.addEventListener("click", function () {
         addToShelf(savedBook, button.dataset.shelfAction);
         renderAll();
@@ -1062,6 +1068,12 @@
     saveState();
   }
 
+  function getBookShelf(bookKey) {
+    return Object.keys(state.shelves).find(function (shelf) {
+      return state.shelves[shelf].includes(bookKey);
+    }) || "";
+  }
+
   function ensureBook(rawBook) {
     var existing = state.books[rawBook.key] || {};
     return Object.assign({}, rawBook, existing, {
@@ -1120,6 +1132,7 @@
     els.totalPages.value = currentBook.totalPages || "";
     els.bookNoteType.value = "Idea";
     els.bookNote.value = "";
+    renderDialogShelfButtons(currentBook.key);
     renderBookDialogNotes(currentBook);
 
     if (typeof els.dialog.showModal === "function") {
@@ -1127,6 +1140,15 @@
     } else {
       alert(currentBook.title);
     }
+  }
+
+  function renderDialogShelfButtons(bookKey) {
+    var activeShelf = getBookShelf(bookKey);
+    els.dialogShelfButtons.forEach(function (button) {
+      var selected = button.dataset.addShelf === activeShelf;
+      button.classList.toggle("selected", selected);
+      button.setAttribute("aria-pressed", String(selected));
+    });
   }
 
   function renderHabit() {
