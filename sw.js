@@ -1,4 +1,4 @@
-var CACHE_NAME = "readroot-v22";
+var CACHE_NAME = "readroot-v23";
 var ASSETS = [
   "./",
   "./index.html",
