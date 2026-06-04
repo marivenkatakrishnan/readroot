@@ -4,7 +4,7 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   display_name text,
   username text unique,
-  visibility text not null default 'public' check (visibility in ('public', 'private')),
+  visibility text not null default 'private' check (visibility in ('public', 'private')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -19,6 +19,12 @@ create table if not exists public.reading_logs (
   minutes integer not null default 0 check (minutes >= 0),
   read_at timestamptz not null,
   created_at timestamptz not null default now()
+);
+
+create table if not exists public.reading_snapshots (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  payload jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
 );
 
 create table if not exists public.reading_groups (
@@ -37,14 +43,34 @@ create table if not exists public.group_members (
   primary key (group_id, user_id)
 );
 
+alter table public.profiles alter column visibility set default 'private';
+
 alter table public.profiles enable row level security;
 alter table public.reading_logs enable row level security;
+alter table public.reading_snapshots enable row level security;
 alter table public.reading_groups enable row level security;
 alter table public.group_members enable row level security;
 
-create policy "Public profiles are readable"
+drop policy if exists "Public profiles are readable" on public.profiles;
+drop policy if exists "Users can read own profile" on public.profiles;
+drop policy if exists "Users can insert own profile" on public.profiles;
+drop policy if exists "Users can update own profile" on public.profiles;
+drop policy if exists "Public logs are readable through leaderboard" on public.reading_logs;
+drop policy if exists "Users can read own logs" on public.reading_logs;
+drop policy if exists "Users can insert own logs" on public.reading_logs;
+drop policy if exists "Users can update own logs" on public.reading_logs;
+drop policy if exists "Users can read own snapshot" on public.reading_snapshots;
+drop policy if exists "Users can insert own snapshot" on public.reading_snapshots;
+drop policy if exists "Users can update own snapshot" on public.reading_snapshots;
+drop policy if exists "Members can read their groups" on public.reading_groups;
+drop policy if exists "Users can insert owned groups" on public.reading_groups;
+drop policy if exists "Owners can update groups" on public.reading_groups;
+drop policy if exists "Users can read own memberships" on public.group_members;
+drop policy if exists "Users can join groups" on public.group_members;
+
+create policy "Users can read own profile"
   on public.profiles for select
-  using (visibility = 'public' or auth.uid() = id);
+  using (auth.uid() = id);
 
 create policy "Users can insert own profile"
   on public.profiles for insert
@@ -55,17 +81,9 @@ create policy "Users can update own profile"
   using (auth.uid() = id)
   with check (auth.uid() = id);
 
-create policy "Public logs are readable through leaderboard"
+create policy "Users can read own logs"
   on public.reading_logs for select
-  using (
-    exists (
-      select 1
-      from public.profiles
-      where profiles.id = reading_logs.user_id
-      and profiles.visibility = 'public'
-    )
-    or auth.uid() = user_id
-  );
+  using (auth.uid() = user_id);
 
 create policy "Users can insert own logs"
   on public.reading_logs for insert
@@ -73,6 +91,19 @@ create policy "Users can insert own logs"
 
 create policy "Users can update own logs"
   on public.reading_logs for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create policy "Users can read own snapshot"
+  on public.reading_snapshots for select
+  using (auth.uid() = user_id);
+
+create policy "Users can insert own snapshot"
+  on public.reading_snapshots for insert
+  with check (auth.uid() = user_id);
+
+create policy "Users can update own snapshot"
+  on public.reading_snapshots for update
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
@@ -101,14 +132,12 @@ create policy "Users can read own memberships"
   on public.group_members for select
   using (user_id = auth.uid());
 
-create policy "Users can join groups"
-  on public.group_members for insert
-  with check (user_id = auth.uid());
-
 create index if not exists reading_logs_user_id_idx on public.reading_logs (user_id);
 create index if not exists reading_logs_read_at_idx on public.reading_logs (read_at desc);
+create index if not exists reading_logs_user_read_at_idx on public.reading_logs (user_id, read_at desc);
 create index if not exists reading_groups_invite_code_idx on public.reading_groups (invite_code);
 create index if not exists group_members_user_id_idx on public.group_members (user_id);
+create index if not exists group_members_group_id_idx on public.group_members (group_id);
 
 create or replace function public.leaderboard(period text default 'week')
 returns table (
@@ -125,7 +154,7 @@ security definer
 set search_path = public
 as $$
   select
-    members.user_id,
+    logs.user_id,
     coalesce(nullif(profiles.display_name, ''), split_part(profiles.username, '@', 1), 'Reader') as display_name,
     profiles.username,
     sum(logs.pages)::bigint as total_pages,
@@ -257,7 +286,7 @@ security definer
 set search_path = public
 as $$
   select
-    logs.user_id,
+    members.user_id,
     coalesce(nullif(profiles.display_name, ''), profiles.username, 'Reader') as display_name,
     profiles.username,
     coalesce(sum(logs.pages), 0)::bigint as total_pages,
@@ -277,7 +306,19 @@ as $$
     )
   where requester.group_id = group_id_input
     and requester.user_id = auth.uid()
-  group by logs.user_id, members.user_id, profiles.display_name, profiles.username
+  group by members.user_id, profiles.display_name, profiles.username
   order by total_pages desc, sessions asc, display_name asc
   limit 50;
 $$;
+
+grant select, insert, update on public.profiles to authenticated;
+grant select, insert, update on public.reading_logs to authenticated;
+grant select, insert, update on public.reading_snapshots to authenticated;
+grant select on public.reading_groups to authenticated;
+grant select on public.group_members to authenticated;
+
+grant execute on function public.leaderboard(text) to authenticated;
+grant execute on function public.create_reading_group(text) to authenticated;
+grant execute on function public.join_reading_group(text) to authenticated;
+grant execute on function public.my_reading_groups() to authenticated;
+grant execute on function public.group_leaderboard(uuid, text) to authenticated;

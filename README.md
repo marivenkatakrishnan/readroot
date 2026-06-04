@@ -1,6 +1,6 @@
 # ReadRoot
 
-ReadRoot is a small no-backend reading habit web app.
+ReadRoot is a small local-first reading habit web app.
 
 ## MVP features
 
@@ -19,7 +19,7 @@ ReadRoot is a small no-backend reading habit web app.
 - Mark daily reading streaks.
 - Use a 10, 20, or 30 minute reading timer.
 - Save multiple typed journal notes per book.
-- Optional Supabase login, cloud sync, private groups, and group-only leaderboards.
+- Optional Supabase login, reading-data sync, private groups, and group-only leaderboards.
 - Save year goal locally.
 
 ## Run locally
@@ -36,16 +36,19 @@ Then visit:
 http://127.0.0.1:4173
 ```
 
-All user data is stored in the browser with `localStorage`.
+Without Supabase keys, all user data is stored in the browser with `localStorage`.
 
 ## Optional Supabase setup
 
-ReadRoot works without a backend. To enable login, cloud sync, private reading groups, and the Reading League:
+ReadRoot works without Supabase. For Phase 2, keep Cloudflare Pages as the frontend host and use Supabase only for accounts, reading-data sync, private groups, and group leaderboards.
 
 1. Create a Supabase project.
 2. Open the Supabase SQL editor and run `supabase-schema.sql`.
-3. Copy your project URL and anon public key into `supabase-config.js`.
-4. In Supabase Auth settings, add your deployed site URL to the redirect URLs.
+3. In Supabase, open Project Settings -> API.
+4. Copy the Project URL and anon public key into `supabase-config.js`.
+5. In Supabase Auth URL settings, set the site URL to your Cloudflare Pages URL, for example `https://readroot.pages.dev`.
+6. Add redirect URLs for every place you will test or deploy the app.
+7. Commit and redeploy the same static files to Cloudflare Pages.
 
 For local preview, add:
 
@@ -53,7 +56,25 @@ For local preview, add:
 http://127.0.0.1:4173
 ```
 
-The anon key is safe to use in the browser when Row Level Security is enabled.
+For Cloudflare Pages, add:
+
+```text
+https://readroot.pages.dev
+```
+
+If you later use a custom domain, also add it:
+
+```text
+https://app.readroot.in
+```
+
+Use only the anon public key in `supabase-config.js`. Never use the `service_role` key in a frontend file. The anon key is safe for browser use because the schema enables Row Level Security.
+
+Cloud sync scope:
+
+- A private `reading_snapshots` row stores shelves, notes, goals, reading logs, marked days, and book progress for each signed-in user.
+- `reading_logs` stores session rows used by private group leaderboards.
+- Profiles default to private; the app shows leaderboards only inside groups the signed-in user belongs to.
 
 Group flow:
 

@@ -41,7 +41,9 @@
     groups: [],
     selectedGroupId: "",
     board: "week",
-    syncing: false
+    syncing: false,
+    restoring: false,
+    snapshotTimerId: null
   };
 
   var els = {
@@ -361,7 +363,9 @@
 
     if (cloud.user) {
       await ensureCloudProfile();
-      renderCloudPanel("Signed in. Saving local logs...");
+      renderCloudPanel("Signed in. Loading reading data...");
+      await loadCloudSnapshot();
+      renderCloudPanel("Signed in. Syncing reading data...");
       await syncCloudData({ silent: true });
       await fetchGroups();
     } else {
@@ -375,7 +379,7 @@
 
   async function signInWithEmail() {
     if (!cloud.enabled) {
-      renderCloudPanel("Online backup is not available in this preview.");
+      renderCloudPanel("Online sync is not available in this preview.");
       return;
     }
 
@@ -402,7 +406,7 @@
 
   async function signInWithGoogle() {
     if (!cloud.enabled) {
-      renderCloudPanel("Online backup is not available in this preview.");
+      renderCloudPanel("Online sync is not available in this preview.");
       return;
     }
 
@@ -454,7 +458,7 @@
       id: cloud.user.id,
       display_name: cloud.user.user_metadata && cloud.user.user_metadata.full_name ? cloud.user.user_metadata.full_name : emailName,
       username: sanitizeUsername(emailName) + "-" + cloud.user.id.slice(0, 6),
-      visibility: "public"
+      visibility: "private"
     };
 
     var inserted = await cloud.client
@@ -483,7 +487,7 @@
       id: cloud.user.id,
       display_name: els.profileName.value.trim() || "Reader",
       username: username,
-      visibility: "public",
+      visibility: "private",
       updated_at: new Date().toISOString()
     };
 
@@ -505,32 +509,214 @@
 
   async function syncCloudData(options) {
     if (!cloud.enabled || !cloud.user) {
-      renderCloudPanel("Sign in to save your reading logs.");
+      renderCloudPanel("Sign in to sync your reading data.");
       return;
     }
 
+    var silent = Boolean(options && options.silent);
     cloud.syncing = true;
-    if (!options || !options.silent) {
-      renderCloudPanel("Saving local logs...");
+    if (!silent) {
+      renderCloudPanel("Syncing reading data...");
     }
 
-    ensureLogIds();
-    var rows = state.logs.map(toCloudLogRow).filter(Boolean);
-    if (rows.length) {
-      var result = await cloud.client
-        .from("reading_logs")
-        .upsert(rows, { onConflict: "id" });
+    try {
+      ensureLogIds();
+      var rows = state.logs.map(toCloudLogRow).filter(Boolean);
+      if (rows.length) {
+        var logsResult = await cloud.client
+          .from("reading_logs")
+          .upsert(rows, { onConflict: "id" });
 
-      if (result.error) {
-        cloud.syncing = false;
-        renderCloudPanel(result.error.message);
+        if (logsResult.error) {
+          throw logsResult.error;
+        }
+      }
+
+      var snapshotResult = await saveCloudSnapshot({ silent: true });
+      if (snapshotResult && snapshotResult.error) {
+        throw snapshotResult.error;
+      }
+
+      cloud.syncing = false;
+      renderCloudPanel(rows.length ? "Reading data synced. " + rows.length + " sessions can count in groups." : "Reading data synced.");
+      await fetchLeaderboard();
+    } catch (error) {
+      cloud.syncing = false;
+      renderCloudPanel(error.message || "Saved locally. Online sync will retry later.");
+    }
+  }
+
+  async function loadCloudSnapshot() {
+    if (!cloud.enabled || !cloud.user) {
+      return;
+    }
+
+    var result = await cloud.client
+      .from("reading_snapshots")
+      .select("payload")
+      .eq("user_id", cloud.user.id)
+      .maybeSingle();
+
+    if (result.error) {
+      renderCloudPanel(result.error.message);
+      return;
+    }
+
+    if (!result.data || !result.data.payload) {
+      return;
+    }
+
+    var remoteState = normalizeSnapshotState(result.data.payload);
+    if (!remoteState) {
+      return;
+    }
+
+    cloud.restoring = true;
+    try {
+      state = mergeReadingStates(state, remoteState);
+      saveState();
+      renderAll();
+    } finally {
+      cloud.restoring = false;
+    }
+  }
+
+  async function saveCloudSnapshot(options) {
+    if (!cloud.enabled || !cloud.user || cloud.restoring) {
+      return null;
+    }
+
+    var result = await cloud.client
+      .from("reading_snapshots")
+      .upsert({
+        user_id: cloud.user.id,
+        payload: buildCloudSnapshot(),
+        updated_at: new Date().toISOString()
+      }, { onConflict: "user_id" });
+
+    if (result.error && (!options || !options.silent)) {
+      renderCloudPanel(result.error.message);
+    }
+
+    return result;
+  }
+
+  function scheduleCloudSnapshot() {
+    if (!cloud.enabled || !cloud.user || cloud.syncing || cloud.restoring) {
+      return;
+    }
+
+    if (cloud.snapshotTimerId) {
+      window.clearTimeout(cloud.snapshotTimerId);
+    }
+
+    cloud.snapshotTimerId = window.setTimeout(async function () {
+      cloud.snapshotTimerId = null;
+      var result = await saveCloudSnapshot({ silent: true });
+      if (result && result.error) {
+        renderCloudPanel("Saved locally. Online sync will retry later.");
+      }
+    }, 900);
+  }
+
+  function buildCloudSnapshot() {
+    return {
+      version: 2,
+      books: state.books,
+      shelves: state.shelves,
+      logs: state.logs,
+      markedDays: state.markedDays,
+      goal: state.goal,
+      weeklyGoal: state.weeklyGoal,
+      activeShelf: state.activeShelf,
+      savedAt: new Date().toISOString()
+    };
+  }
+
+  function normalizeSnapshotState(payload) {
+    if (!payload || typeof payload !== "object") {
+      return null;
+    }
+
+    return {
+      books: payload.books && typeof payload.books === "object" && !Array.isArray(payload.books) ? payload.books : {},
+      shelves: normalizeShelves(payload.shelves),
+      logs: Array.isArray(payload.logs) ? payload.logs : [],
+      markedDays: Array.isArray(payload.markedDays) ? payload.markedDays.filter(Boolean) : [],
+      goal: Number(payload.goal) || defaultState.goal,
+      weeklyGoal: Number(payload.weeklyGoal) || defaultState.weeklyGoal,
+      activeShelf: payload.activeShelf && defaultState.shelves[payload.activeShelf] ? payload.activeShelf : defaultState.activeShelf
+    };
+  }
+
+  function normalizeShelves(shelves) {
+    return {
+      want: Array.isArray(shelves && shelves.want) ? shelves.want.filter(Boolean) : [],
+      reading: Array.isArray(shelves && shelves.reading) ? shelves.reading.filter(Boolean) : [],
+      finished: Array.isArray(shelves && shelves.finished) ? shelves.finished.filter(Boolean) : []
+    };
+  }
+
+  function mergeReadingStates(localState, remoteState) {
+    var localHasActivity = hasReadingActivity(localState);
+    var mergedBooks = Object.assign({}, remoteState.books, localState.books);
+    var shelfMap = buildShelfMap(remoteState.shelves);
+    Object.assign(shelfMap, buildShelfMap(localState.shelves));
+
+    return {
+      books: mergedBooks,
+      shelves: mergeShelves(remoteState.shelves, localState.shelves, mergedBooks, shelfMap),
+      logs: mergeLogs(remoteState.logs, localState.logs),
+      markedDays: Array.from(new Set(remoteState.markedDays.concat(localState.markedDays))).sort(),
+      goal: localHasActivity ? localState.goal : remoteState.goal,
+      weeklyGoal: localHasActivity ? localState.weeklyGoal : remoteState.weeklyGoal,
+      activeShelf: localState.activeShelf || remoteState.activeShelf || defaultState.activeShelf
+    };
+  }
+
+  function hasReadingActivity(nextState) {
+    return Boolean(
+      Object.keys(nextState.books || {}).length ||
+      (Array.isArray(nextState.logs) && nextState.logs.length) ||
+      (Array.isArray(nextState.markedDays) && nextState.markedDays.length)
+    );
+  }
+
+  function buildShelfMap(shelves) {
+    return Object.keys(defaultState.shelves).reduce(function (map, shelf) {
+      (shelves[shelf] || []).forEach(function (key) {
+        map[key] = shelf;
+      });
+      return map;
+    }, {});
+  }
+
+  function mergeShelves(remoteShelves, localShelves, books, shelfMap) {
+    return Object.keys(defaultState.shelves).reduce(function (merged, shelf) {
+      var keys = remoteShelves[shelf].concat(localShelves[shelf]);
+      merged[shelf] = [];
+      keys.forEach(function (key) {
+        if (books[key] && shelfMap[key] === shelf && !merged[shelf].includes(key)) {
+          merged[shelf].push(key);
+        }
+      });
+      return merged;
+    }, { want: [], reading: [], finished: [] });
+  }
+
+  function mergeLogs(remoteLogs, localLogs) {
+    var logMap = new Map();
+    remoteLogs.concat(localLogs).forEach(function (log, index) {
+      if (!log || typeof log !== "object") {
         return;
       }
-    }
+      var id = log.id || "legacy-" + safeSlug(log.key || "book") + "-" + safeSlug(log.readAt || log.createdAt || String(index));
+      logMap.set(id, Object.assign({}, log, { id: id }));
+    });
 
-    cloud.syncing = false;
-    renderCloudPanel(rows.length ? rows.length + " reading logs saved." : "Nothing to save yet.");
-    await fetchLeaderboard();
+    return Array.from(logMap.values()).sort(function (a, b) {
+      return getLogDate(b).getTime() - getLogDate(a).getTime();
+    });
   }
 
   async function syncLogToCloud(log) {
@@ -549,7 +735,7 @@
         .upsert(row, { onConflict: "id" });
       await fetchLeaderboard();
     } catch (error) {
-      renderCloudPanel("Saved locally. Online backup will retry later.");
+      renderCloudPanel("Saved locally. Online sync will retry later.");
     }
   }
 
@@ -715,7 +901,7 @@
       item.innerHTML = "<div class=\"leaderboard-rank\"></div><div class=\"leaderboard-name\"><strong></strong><span></span></div><div class=\"leaderboard-score\"><strong></strong><span></span></div>";
       item.querySelector(".leaderboard-rank").textContent = String(index + 1);
       item.querySelector(".leaderboard-name strong").textContent = row.display_name || "Reader";
-      item.querySelector(".leaderboard-name span").textContent = row.username ? "@" + row.username : "public reader";
+      item.querySelector(".leaderboard-name span").textContent = row.username ? "@" + row.username : "reader";
       item.querySelector(".leaderboard-score strong").textContent = String(row.total_pages || 0);
       item.querySelector(".leaderboard-score span").textContent = (row.sessions || 0) + " sessions";
       els.leaderboardList.appendChild(item);
@@ -759,7 +945,7 @@
     } else if (signedIn) {
       els.cloudStatus.textContent = cloud.user.email || "Signed in";
     } else {
-      els.cloudStatus.textContent = "Sign in to save progress and join reading groups.";
+      els.cloudStatus.textContent = "Sign in to sync reading data and join private groups.";
     }
 
     renderGroupControls();
@@ -847,6 +1033,7 @@
 
   function saveState() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    scheduleCloudSnapshot();
   }
 
   function showView(viewName) {
