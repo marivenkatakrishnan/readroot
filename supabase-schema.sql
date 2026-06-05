@@ -202,6 +202,7 @@ begin
       returning * into created_group;
       exit;
     exception when unique_violation then
+      null;
     end;
   end loop;
 
