@@ -73,6 +73,8 @@ Use only the anon public key in `supabase-config.js`. Never use the `service_rol
 
 Email magic link is the default sign-in method. The Google button stays hidden unless `googleEnabled: true` is set in `supabase-config.js` after Google OAuth is enabled in Supabase Auth providers.
 
+If the app shows `Email rate limit exceeded`, the hosted Supabase test email sender has reached its limit. Wait for the limit to reset, or configure Custom SMTP in Supabase Authentication settings before inviting more testers. Profile and group controls appear only after a successful sign-in.
+
 Cloud sync scope:
 
 - A private `reading_snapshots` row stores shelves, notes, goals, reading logs, marked days, and book progress for each signed-in user.

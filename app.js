@@ -401,11 +401,11 @@
     });
 
     if (result.error) {
-      renderCloudPanel(result.error.message);
+      renderCloudPanel(formatCloudError(result.error.message));
       return;
     }
 
-    renderCloudPanel("Magic link sent. Check your email.");
+    renderCloudPanel("Magic link sent. Profile and groups unlock after sign-in.");
   }
 
   async function signInWithGoogle() {
@@ -422,7 +422,7 @@
     });
 
     if (result.error) {
-      renderCloudPanel(result.error.message);
+      renderCloudPanel(formatCloudError(result.error.message));
     }
   }
 
@@ -502,7 +502,7 @@
       .single();
 
     if (result.error) {
-      renderCloudPanel(result.error.message);
+      renderCloudPanel(formatCloudError(result.error.message));
       return;
     }
 
@@ -546,7 +546,7 @@
       await fetchLeaderboard();
     } catch (error) {
       cloud.syncing = false;
-      renderCloudPanel(error.message || "Saved locally. Online sync will retry later.");
+      renderCloudPanel(formatCloudError(error.message || "Saved locally. Online sync will retry later."));
     }
   }
 
@@ -562,7 +562,7 @@
       .maybeSingle();
 
     if (result.error) {
-      renderCloudPanel(result.error.message);
+      renderCloudPanel(formatCloudError(result.error.message));
       return;
     }
 
@@ -599,7 +599,7 @@
       }, { onConflict: "user_id" });
 
     if (result.error && (!options || !options.silent)) {
-      renderCloudPanel(result.error.message);
+      renderCloudPanel(formatCloudError(result.error.message));
     }
 
     return result;
@@ -950,10 +950,22 @@
     } else if (signedIn) {
       els.cloudStatus.textContent = cloud.user.email || "Signed in";
     } else {
-      els.cloudStatus.textContent = "Sign in to sync reading data and join private groups.";
+      els.cloudStatus.textContent = "Sign in with email. Profile and private groups unlock after sign-in.";
     }
 
     renderGroupControls();
+  }
+
+  function formatCloudError(message) {
+    var text = String(message || "").trim();
+    var lower = text.toLowerCase();
+    if (lower.includes("rate limit")) {
+      return "Email limit reached. Wait before requesting another link, or enable Custom SMTP in Supabase.";
+    }
+    if (lower.includes("unsupported provider")) {
+      return "That sign-in method is not enabled. Use email sign-in for now.";
+    }
+    return text || "Something went wrong. Try again.";
   }
 
   function renderGroupControls() {
