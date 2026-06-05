@@ -1,3 +1,6 @@
+-- Run this full file in the Supabase SQL Editor after every ReadRoot schema update.
+-- Running only one section can leave profile, sync, or group features missing.
+
 create extension if not exists pgcrypto;
 
 create table if not exists public.profiles (
@@ -322,3 +325,5 @@ grant execute on function public.create_reading_group(text) to authenticated;
 grant execute on function public.join_reading_group(text) to authenticated;
 grant execute on function public.my_reading_groups() to authenticated;
 grant execute on function public.group_leaderboard(uuid, text) to authenticated;
+
+notify pgrst, 'reload schema';
