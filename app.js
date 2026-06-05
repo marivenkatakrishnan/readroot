@@ -1009,7 +1009,7 @@
   }
 
   function getRedirectUrl() {
-    return window.location.href.split("#")[0];
+    return window.location.origin + "/";
   }
 
   function loadState() {

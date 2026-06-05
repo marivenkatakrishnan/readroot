@@ -47,7 +47,7 @@ ReadRoot works without Supabase. For Phase 2, keep Cloudflare Pages as the front
 3. In Supabase, open Project Settings -> API.
 4. Copy the Project URL and anon public key into `supabase-config.js`.
 5. In Supabase Auth URL settings, set the site URL to your Cloudflare Pages URL, for example `https://readroot.pages.dev`.
-6. Add redirect URLs for every place you will test or deploy the app.
+6. Add redirect URLs for every place you will test or deploy the app. If magic links open `localhost:3000`, the Supabase Site URL is still pointing at a local default and must be changed.
 7. Commit and redeploy the same static files to Cloudflare Pages.
 
 For local preview, add:
@@ -60,6 +60,7 @@ For Cloudflare Pages, add:
 
 ```text
 https://readroot.pages.dev
+https://readroot.pages.dev/**
 ```
 
 If you later use a custom domain, also add it:
