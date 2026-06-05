@@ -357,6 +357,10 @@
     );
   }
 
+  function hasGoogleLogin() {
+    return Boolean(supabaseConfig && supabaseConfig.googleEnabled === true);
+  }
+
   async function handleCloudSession(session) {
     cloud.session = session || null;
     cloud.user = session && session.user ? session.user : null;
@@ -924,13 +928,14 @@
   function renderCloudPanel(message) {
     var signedIn = Boolean(cloud.user);
     var showAuth = Boolean(cloud.enabled && !signedIn);
+    var showGoogle = Boolean(showAuth && hasGoogleLogin());
     els.cloudBadge.textContent = cloud.enabled ? signedIn ? "Signed in" : "Ready" : "On device";
     els.authForm.hidden = !showAuth;
-    els.googleLogin.hidden = !showAuth;
+    els.googleLogin.hidden = !showGoogle;
     els.profilePanel.hidden = !signedIn;
     els.authEmail.disabled = !cloud.enabled;
     els.authForm.querySelector("button").disabled = !cloud.enabled;
-    els.googleLogin.disabled = !cloud.enabled;
+    els.googleLogin.disabled = !showGoogle;
     els.syncCloud.disabled = !signedIn || cloud.syncing;
 
     if (signedIn) {

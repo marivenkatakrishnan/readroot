@@ -70,6 +70,8 @@ https://app.readroot.in
 
 Use only the anon public key in `supabase-config.js`. Never use the `service_role` key in a frontend file. The anon key is safe for browser use because the schema enables Row Level Security.
 
+Email magic link is the default sign-in method. The Google button stays hidden unless `googleEnabled: true` is set in `supabase-config.js` after Google OAuth is enabled in Supabase Auth providers.
+
 Cloud sync scope:
 
 - A private `reading_snapshots` row stores shelves, notes, goals, reading logs, marked days, and book progress for each signed-in user.
